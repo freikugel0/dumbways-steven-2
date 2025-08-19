@@ -1,10 +1,14 @@
 import express from "express";
-import postRoutes from "./routes/post-route.js";
+import productRoutes from "./routes/product-route.js";
+import orderRoutes from "./routes/order-route.js";
 
 const app = express();
 const port = 3000;
 
-app.use("/api/v1", postRoutes);
+app.use(express.json());
+
+app.use("/api/v1", productRoutes);
+app.use("/api/v1", orderRoutes);
 
 app.listen(port, () => {
   console.log("Running on", port);
