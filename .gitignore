@@ -42,3 +42,4 @@ package-lock.json yarn.lock # (opsional, kalau kamu gak mau lock file ikut di-Gi
 *.local
 
 uploads
+/src/generated/prisma
