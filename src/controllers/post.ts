@@ -1,11 +1,50 @@
 import { prisma } from "../lib/client.js";
 import type { Request, Response } from "express";
-import { makeResponse } from "../utils/response.js";
+import { makePaginationResponse, makeResponse } from "../utils/response.js";
 import { StatusCodes } from "http-status-codes";
 
 export const getPosts = async (req: Request, res: Response) => {
-  const result = await prisma.post.findMany();
-  res.status(StatusCodes.OK).json(makeResponse(StatusCodes.OK, result));
+  // Get query params
+  const { sortBy, order, category, limit, offset } = req.query;
+
+  // Create category filters
+  const filters: any = {};
+  if (category) filters.category = { name: String(category) };
+
+  // NOTE:
+  // limit = take
+  // offset = skip
+  const limitNum = Number(limit);
+  const pageNum = Number(offset);
+
+  // Validate pagination value
+  const limitSafe = !isNaN(limitNum) && limitNum > 0 ? limitNum : 50;
+  const pageSafe = !isNaN(pageNum) && pageNum >= 0 ? pageNum : 1;
+
+  // Get data
+  const result = await prisma.post.findMany({
+    where: filters,
+    orderBy: {
+      [sortBy as string]: order as "asc" | "desc",
+    },
+    take: limitSafe,
+    skip: (pageSafe - 1) * limitSafe, // prisma need zero based index
+  });
+
+  // Get total data
+  const total = await prisma.post.count({ where: filters });
+
+  res.status(StatusCodes.OK).json(
+    makeResponse(
+      StatusCodes.OK,
+      makePaginationResponse({
+        limit: limitSafe,
+        page: pageSafe,
+        total,
+        data: result,
+      }),
+    ),
+  );
 };
 
 export const detailPost = async (req: Request, res: Response) => {

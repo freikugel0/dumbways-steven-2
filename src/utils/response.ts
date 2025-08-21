@@ -6,6 +6,13 @@ export type ApiResponse<T> = {
   data: T;
 };
 
+export type Meta<T> = {
+  limit: number;
+  page: number;
+  total: number;
+  data: T;
+};
+
 export const makeResponse = <T>(
   status: (typeof StatusCodes)[keyof typeof StatusCodes],
   data: T,
@@ -15,4 +22,13 @@ export const makeResponse = <T>(
     msg: getReasonPhrase(status),
     data: data,
   };
+};
+
+export const makePaginationResponse = <T>({
+  limit,
+  page,
+  total,
+  data,
+}: Meta<T>): Meta<T> => {
+  return { limit, page, total, data };
 };
