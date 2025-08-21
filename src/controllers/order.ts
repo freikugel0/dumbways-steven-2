@@ -30,7 +30,7 @@ export const getOrdersSummary = async (req: Request, res: Response) => {
         }
       : { userId: "asc" },
     take: limitSafe,
-    skip: pageSafe - 1, // prisma need zero based index
+    skip: (pageSafe - 1) * limitSafe, // prisma need zero based index
   });
 
   // Format into more readable response

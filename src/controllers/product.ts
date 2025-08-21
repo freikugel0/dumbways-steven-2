@@ -34,7 +34,7 @@ export const getProducts = async (req: Request, res: Response) => {
       [sortBy as string]: order as "asc" | "desc",
     },
     take: limitSafe,
-    skip: pageSafe - 1, // prisma need zero based index
+    skip: (pageSafe - 1) * limitSafe, // prisma need zero based index
   });
 
   // Get total data
