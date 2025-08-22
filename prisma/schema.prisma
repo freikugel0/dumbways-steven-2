@@ -18,42 +18,6 @@ model User {
   id        Int      @id @default(autoincrement())
   name      String
   email     String   @unique
+  points    Int      @default(0)
   createdAt DateTime @default(now())
-
-  posts    Post[]
-  comments Comment[]
-}
-
-model Post {
-  id        Int      @id @default(autoincrement())
-  title     String
-  content   String?
-  createdAt DateTime @default(now())
-
-  authorId Int
-  author   User @relation(fields: [authorId], references: [id])
-
-  categoryId Int?
-  category   Category? @relation(fields: [categoryId], references: [id])
-
-  comments Comment[]
-}
-
-model Category {
-  id   Int    @id @default(autoincrement())
-  name String
-
-  posts Post[]
-}
-
-model Comment {
-  id        Int      @id @default(autoincrement())
-  content   String
-  createdAt DateTime @default(now())
-
-  userId Int
-  user   User @relation(fields: [userId], references: [id])
-
-  postId Int
-  post   Post @relation(fields: [postId], references: [id])
 }

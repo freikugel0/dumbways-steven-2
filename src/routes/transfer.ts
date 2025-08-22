@@ -1,8 +1,8 @@
 import express, { type Router } from "express";
-import { getUsers } from "../controllers/user.js";
+import { transferPoints } from "../controllers/transfer.js";
 
 const router: Router = express.Router();
 
-router.get("/users", getUsers);
+router.post("/transfer-points", transferPoints);
 
 export default router;

@@ -1,9 +1,9 @@
 import express from "express";
 import userRoutes from "./routes/user.js";
-import postRoutes from "./routes/post.js";
+import transferRoutes from "./routes/transfer.js";
 import dotenv from "dotenv";
-import notFoundHandler from "./middlewares/notFound.js";
-import serverErrorHandler from "./middlewares/serverError.js";
+import notFoundHandler from "./middlewares/not-found.js";
+import serverErrorHandler from "./middlewares/server-error.js";
 
 dotenv.config();
 
@@ -13,7 +13,7 @@ const port = process.env.PORT;
 app.use(express.json());
 
 app.use("/api/v1", userRoutes);
-app.use("/api/v1", postRoutes);
+app.use("/api/v1", transferRoutes);
 
 // general error fallback
 app.use(notFoundHandler);
