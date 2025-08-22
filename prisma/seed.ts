@@ -2,48 +2,58 @@ import { prisma } from "../src/lib/client.js";
 
 async function main() {
   // Clear existing data
+  await prisma.supplierStock.deleteMany();
   await prisma.product.deleteMany();
   await prisma.supplier.deleteMany();
 
-  // Supplier + Product data (English names)
-  const supplierData = [
-    {
-      name: "Supplier A",
-      products: [
-        { name: "Instant Noodles", stock: 50 },
-        { name: "Coffee Sachet", stock: 30 },
-      ],
-    },
-    {
-      name: "Supplier B",
-      products: [
-        { name: "Cooking Oil", stock: 100 },
-        { name: "Wheat Flour", stock: 75 },
-      ],
-    },
-    {
-      name: "Supplier C",
-      products: [{ name: "Milk Powder", stock: 40 }],
-    },
-  ];
+  // Create Suppliers
+  await prisma.supplier.createMany({
+    data: [
+      { name: "Supplier A" },
+      { name: "Supplier B" },
+      { name: "Supplier C" },
+    ],
+  });
 
-  // Seed Suppliers + Products
-  const suppliers = await Promise.all(
-    supplierData.map((supplier) =>
-      prisma.supplier.create({
-        data: {
-          name: supplier.name,
-          products: {
-            create: supplier.products,
-          },
-        },
-        include: { products: true },
-      }),
-    ),
-  );
+  // Create Products
+  await prisma.product.createMany({
+    data: [
+      { name: "Instant Noodles" },
+      { name: "Cooking Oil" },
+      { name: "Wheat Flour" },
+      { name: "Milk Powder" },
+    ],
+  });
 
-  console.log("✅ Seeding complete with:");
-  console.log(`- ${suppliers.length} suppliers`);
+  // Insert SupplierStock (relation + stock amount)
+  await prisma.supplierStock.createMany({
+    data: [
+      // Instant Noodles (productId: 1)
+      { supplierId: 1, productId: 1, stock: 100 },
+      { supplierId: 2, productId: 1, stock: 80 },
+
+      // Cooking Oil (productId: 2)
+      { supplierId: 1, productId: 2, stock: 50 },
+      { supplierId: 3, productId: 2, stock: 120 },
+
+      // Wheat Flour (productId: 3)
+      { supplierId: 2, productId: 3, stock: 200 },
+
+      // Milk Powder (productId: 4)
+      { supplierId: 3, productId: 4, stock: 60 },
+    ],
+  });
+
+  // Fetch with relation for console log
+  const seededSuppliers = await prisma.supplier.findMany({
+    include: {
+      stocks: {
+        include: { product: true },
+      },
+    },
+  });
+
+  console.log("✅ Seeding complete");
 }
 
 main()

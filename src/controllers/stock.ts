@@ -4,7 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { makeResponse } from "../utils/response.js";
 
 export const getStocks = async (req: Request, res: Response) => {
-  const result = await prisma.product.findMany();
+  const result = await prisma.supplierStock.findMany();
   res.status(StatusCodes.OK).json(makeResponse(StatusCodes.OK, result));
 };
 
@@ -13,49 +13,85 @@ export const supplierStock = async (
   res: Response,
   next: NextFunction,
 ) => {
+  const productId = Number(req.body.productId);
   const { updates } = req.body;
 
   try {
-    if (!Array.isArray(updates) || updates.length === 0) {
-      throw new Error("Invalid update stock list");
+    if (
+      !productId ||
+      isNaN(productId) ||
+      !Number.isInteger(productId) ||
+      !Array.isArray(updates) ||
+      updates.length === 0
+    ) {
+      throw new Error("Invalid request body");
+    }
+
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+    });
+
+    if (!product) {
+      throw new Error("Product not found");
     }
 
     const result = await prisma.$transaction(async (tx) => {
-      const updatedProducts = [];
+      const updatedStocks = [];
 
       for (const update of updates) {
-        const { productId, amount } = update;
+        const { supplierId, amount } = update;
 
-        const product = await tx.product.findUnique({
-          where: { id: productId },
+        const supplier = await tx.supplier.findUnique({
+          where: { id: supplierId },
         });
 
-        if (!product) {
-          throw new Error(`Product ID ${productId} not found`);
+        if (!supplier) {
+          throw new Error(`Supplier ID ${supplierId} not found`);
         }
 
-        const newStock = product.stock + amount;
+        // Stock record
+        let stockRecord = await tx.supplierStock.findUnique({
+          where: {
+            supplierId_productId: {
+              supplierId,
+              productId,
+            },
+          },
+        });
+
+        // Create new stock for this supplier if not found
+        if (!stockRecord) {
+          stockRecord = await tx.supplierStock.create({
+            data: {
+              supplierId,
+              productId,
+              stock: 0,
+            },
+          });
+        }
+
+        const newStock = stockRecord.stock + amount;
 
         if (newStock < 0) {
           throw new Error(
-            `Product ${product.name} stock can't be a negative number`,
+            `Stock for supplier ID ${supplier.id} can't be negative`,
           );
         }
 
-        const updated = await tx.product.update({
-          where: { id: productId },
+        const updated = await tx.supplierStock.update({
+          where: { id: stockRecord.id },
           data: { stock: newStock },
         });
 
-        updatedProducts.push(updated);
+        updatedStocks.push(updated);
       }
 
-      return updatedProducts;
+      return updatedStocks;
     });
 
     res.status(StatusCodes.OK).json(
       makeResponse(StatusCodes.OK, {
-        message: "Update stock succeeded",
+        message: "Stock updated successfully",
         products: result,
       }),
     );
