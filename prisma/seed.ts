@@ -1,32 +1,49 @@
 import { prisma } from "../src/lib/client.js";
 
 async function main() {
-  await prisma.user.deleteMany();
+  // Clear existing data
+  await prisma.product.deleteMany();
+  await prisma.supplier.deleteMany();
 
-  // Seed Users
-  const userNames = [
-    "Alice",
-    "Bob",
-    "Charlie",
-    "Diana",
-    "Eve",
-    "Frank",
-    "Grace",
+  // Supplier + Product data (English names)
+  const supplierData = [
+    {
+      name: "Supplier A",
+      products: [
+        { name: "Instant Noodles", stock: 50 },
+        { name: "Coffee Sachet", stock: 30 },
+      ],
+    },
+    {
+      name: "Supplier B",
+      products: [
+        { name: "Cooking Oil", stock: 100 },
+        { name: "Wheat Flour", stock: 75 },
+      ],
+    },
+    {
+      name: "Supplier C",
+      products: [{ name: "Milk Powder", stock: 40 }],
+    },
   ];
-  const users = await Promise.all(
-    userNames.map((name, i) =>
-      prisma.user.create({
+
+  // Seed Suppliers + Products
+  const suppliers = await Promise.all(
+    supplierData.map((supplier) =>
+      prisma.supplier.create({
         data: {
-          name,
-          email: `${name.toLowerCase()}${i}@gmail.com`,
-          points: Math.floor(Math.random() * (1000 - 1 + 1)) + 1,
+          name: supplier.name,
+          products: {
+            create: supplier.products,
+          },
         },
+        include: { products: true },
       }),
     ),
   );
 
   console.log("✅ Seeding complete with:");
-  console.log(`- ${users.length} users`);
+  console.log(`- ${suppliers.length} suppliers`);
 }
 
 main()

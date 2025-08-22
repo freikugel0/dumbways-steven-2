@@ -14,10 +14,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        Int      @id @default(autoincrement())
+model Supplier {
+  id        Int       @id @default(autoincrement())
   name      String
-  email     String   @unique
-  points    Int      @default(0)
-  createdAt DateTime @default(now())
+  products  Product[]
+  createdAt DateTime  @default(now())
+}
+
+model Product {
+  id         Int      @id @default(autoincrement())
+  name       String
+  stock      Int      @default(0)
+  supplierId Int
+  supplier   Supplier @relation(fields: [supplierId], references: [id])
 }
