@@ -4,6 +4,7 @@ import notFoundHandler from "./middlewares/not-found.js";
 import serverErrorHandler from "./middlewares/server-error.js";
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/user.js";
+import supplierRoutes from "./routes/supplier.js";
 
 dotenv.config();
 
@@ -14,6 +15,7 @@ app.use(express.json());
 
 app.use("/api/v1", authRoutes);
 app.use("/api/v1", userRoutes);
+app.use("/api/v1", supplierRoutes);
 
 // general error fallback
 app.use(notFoundHandler);
