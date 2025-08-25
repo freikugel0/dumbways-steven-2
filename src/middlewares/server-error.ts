@@ -1,12 +1,27 @@
 import { StatusCodes } from "http-status-codes";
 import { makeResponse } from "../utils/response.js";
 
+// Custom error class
+export class AppError extends Error {
+  status: number;
+  details?: any;
+
+  constructor(status: number, message: string, details?: any) {
+    super(message);
+    this.status = status;
+    this.details = details;
+  }
+}
+
 const serverErrorHandler = (err: any, req: any, res: any, next: any) => {
   console.error(err);
-  if (err.message) {
+
+  if (err instanceof AppError) {
     return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json(makeResponse(StatusCodes.BAD_REQUEST, { error: err.message }));
+      .status(err.status)
+      .json(
+        makeResponse(err.status, { error: err.message, details: err.details }),
+      );
   }
 
   res
