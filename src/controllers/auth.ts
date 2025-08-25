@@ -123,6 +123,6 @@ export const resetPassword = async (req: Request, res: Response) => {
   });
 
   res
-    .json(StatusCodes.NO_CONTENT)
+    .status(StatusCodes.NO_CONTENT)
     .json(makeResponse(StatusCodes.NO_CONTENT, null));
 };
